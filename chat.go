@@ -28,7 +28,7 @@ type File struct {
 }
 
 // manages a streaming chat via stdin/stdout
-func Streaming(config APIConfig, systemMessageFiles ...File) error {
+func Streaming(config APIConfig, promptFiles ...File) error {
 	rpm := rate.NewLimiter(RPMLimit(float64(config.RPM)), 1)          // allow only one request at a time
 	tpm := rate.NewLimiter(RPMLimit(float64(config.TPM)), config.TPM) // allow a full minute's worth of tokens in one burst
 	reader := bufio.NewReader(os.Stdin)
@@ -52,7 +52,7 @@ func Streaming(config APIConfig, systemMessageFiles ...File) error {
 	addUser := func(s string) {
 		add(openai.ChatMessageRoleUser, s)
 	}
-	for _, file := range systemMessageFiles {
+	for _, file := range promptFiles {
 		if err := func() error {
 			defer file.Body.Close()
 			w := new(bytes.Buffer)
