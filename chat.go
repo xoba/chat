@@ -22,8 +22,13 @@ type APIConfig struct {
 	TPM, RPM  int    // limit on tokens and requests per minute
 }
 
+type File struct {
+	Name string
+	Body io.ReadCloser
+}
+
 // manages a streaming chat via stdin/stdout
-func Streaming(config APIConfig, promptFiles ...string) error {
+func Streaming(config APIConfig, systemMessageFiles ...File) error {
 	rpm := rate.NewLimiter(RPMLimit(float64(config.RPM)), 1)          // allow only one request at a time
 	tpm := rate.NewLimiter(RPMLimit(float64(config.TPM)), config.TPM) // allow a full minute's worth of tokens in one burst
 	reader := bufio.NewReader(os.Stdin)
@@ -47,12 +52,22 @@ func Streaming(config APIConfig, promptFiles ...string) error {
 	addUser := func(s string) {
 		add(openai.ChatMessageRoleUser, s)
 	}
-	for _, filename := range promptFiles {
-		prompt, err := os.ReadFile(filename)
-		if err != nil {
+	for _, file := range systemMessageFiles {
+		if err := func() error {
+			defer file.Body.Close()
+			w := new(bytes.Buffer)
+			if _, err := io.Copy(w, file.Body); err != nil {
+				return err
+			}
+			if name := file.Name; name == "" {
+				addSystem(w.String())
+			} else {
+				addSystem(fmt.Sprintf("file %q contains:\n\n%s", name, w.String()))
+			}
+			return nil
+		}(); err != nil {
 			return err
 		}
-		addSystem(fmt.Sprintf("file %q contains:\n\n%s", filename, string(prompt)))
 	}
 	var init bool
 	for {
