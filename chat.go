@@ -44,7 +44,6 @@ func Chat(key string, maxTokens int, promptFiles ...string) error {
 		}
 		addSystem(fmt.Sprintf("file %q contains:\n\n%s", filename, string(prompt)))
 	}
-	fmt.Println()
 	var init bool
 	for {
 		if init {
@@ -62,9 +61,10 @@ func Chat(key string, maxTokens int, promptFiles ...string) error {
 			default:
 				return fmt.Errorf("bad finish reason: %q", r.FinishReason)
 			}
+			fmt.Println()
 		}
 		init = true
-		fmt.Print("\n> ")
+		fmt.Print("> ")
 		text, err := reader.ReadString('\n')
 		if err == io.EOF {
 			fmt.Println()
