@@ -130,7 +130,7 @@ type completionResponse struct {
 
 func complete(c client, model string, maxTokens int, w io.Writer, messages ...openai.ChatCompletionMessage) (*completionResponse, error) {
 	resp, err := c.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
-		Model:       openai.GPT40613,
+		Model:       model,
 		Messages:    messages,
 		MaxTokens:   maxTokens,
 		Temperature: 0.7,
