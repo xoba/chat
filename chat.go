@@ -19,6 +19,7 @@ import (
 type APIConfig struct {
 	Key       string // openai key
 	MaxTokens int    // max tokens for each completion request
+	GPT4      bool   // use GPT-4 instead of GPT-3.5
 	RPM       int    // limit on tokens per minute (no good token info with streaming)
 }
 
@@ -74,7 +75,13 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 			if err := rpm.Wait(context.Background()); err != nil {
 				return fmt.Errorf("request limiter failed: %v", err)
 			}
-			r, err := complete(c, config.MaxTokens, os.Stdout, messages)
+			var model string
+			if config.GPT4 {
+				model = openai.GPT4
+			} else {
+				model = openai.GPT3Dot5Turbo
+			}
+			r, err := complete(c, model, config.MaxTokens, os.Stdout, messages...)
 			if err != nil {
 				return fmt.Errorf("gpt can't complete: %v", err)
 			}
@@ -121,7 +128,7 @@ type completionResponse struct {
 	Content      string
 }
 
-func complete(c client, maxTokens int, w io.Writer, messages []openai.ChatCompletionMessage) (*completionResponse, error) {
+func complete(c client, model string, maxTokens int, w io.Writer, messages ...openai.ChatCompletionMessage) (*completionResponse, error) {
 	resp, err := c.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
 		Model:       openai.GPT40613,
 		Messages:    messages,
