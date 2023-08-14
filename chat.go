@@ -83,7 +83,7 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 			} else {
 				model = openai.GPT3Dot5Turbo
 			}
-			r, err := retry(5, time.Second, func() (*completionResponse, error) {
+			r, err := retry(7, time.Second, func() (*completionResponse, error) {
 				return complete(c, model, config.MaxTokens, os.Stdout, messages...)
 			})
 			if err != nil {
