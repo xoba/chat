@@ -7,10 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/sashabaranov/go-openai"
 	"golang.org/x/time/rate"
@@ -81,7 +83,9 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 			} else {
 				model = openai.GPT3Dot5Turbo
 			}
-			r, err := complete(c, model, config.MaxTokens, os.Stdout, messages...)
+			r, err := retry(5, time.Second, func() (*completionResponse, error) {
+				return complete(c, model, config.MaxTokens, os.Stdout, messages...)
+			})
 			if err != nil {
 				return fmt.Errorf("gpt can't complete: %v", err)
 			}
@@ -160,7 +164,7 @@ func complete(c client, model string, maxTokens int, w io.Writer, messages ...op
 					fmt.Printf("total tokens = %d; error = %v\n", tokens, err)
 					return nil, err
 				} else {
-					fmt.Printf("error: %v\n", err)
+					return nil, err
 				}
 			}
 			return nil, err
@@ -182,4 +186,23 @@ func complete(c client, model string, maxTokens int, w io.Writer, messages ...op
 
 func newClient(key string) (client, error) {
 	return openai.NewClient(key), nil
+}
+
+func retry[T any](maxTries int, dt time.Duration, f func() (T, error)) (T, error) {
+	var zero T
+	start := time.Now()
+	var tries int
+	for {
+		r, err := f()
+		if err != nil {
+			if tries++; tries == maxTries {
+				return zero, fmt.Errorf("%w after %d tries, %v", err, tries, time.Since(start))
+			}
+			log.Printf("try %d, transient error %v, retrying after %v", tries, err, dt)
+			time.Sleep(dt)
+			dt *= 2
+		} else {
+			return r, nil
+		}
+	}
 }
