@@ -2,4 +2,7 @@ module github.com/xoba/chat
 
 go 1.21.0
 
-require github.com/sashabaranov/go-openai v1.14.2
+require (
+	github.com/sashabaranov/go-openai v1.14.2
+	golang.org/x/time v0.3.0
+)

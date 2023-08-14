@@ -13,11 +13,21 @@ import (
 	"strings"
 
 	"github.com/sashabaranov/go-openai"
+	"golang.org/x/time/rate"
 )
 
-func Chat(key string, maxTokens int, promptFiles ...string) error {
+type APIConfig struct {
+	Key       string // openai key
+	MaxTokens int    // max tokens for each completion request
+	TPM, RPM  int    // limit on tokens and requests per minute
+}
+
+// manages a streaming chat via stdin/stdout
+func Streaming(config APIConfig, promptFiles ...string) error {
+	rpm := rate.NewLimiter(RPMLimit(float64(config.RPM)), 1)          // allow only one request at a time
+	tpm := rate.NewLimiter(RPMLimit(float64(config.TPM)), config.TPM) // allow a full minute's worth of tokens in one burst
 	reader := bufio.NewReader(os.Stdin)
-	c, err := newClient(key)
+	c, err := newClient(config.Key)
 	if err != nil {
 		return err
 	}
@@ -47,7 +57,10 @@ func Chat(key string, maxTokens int, promptFiles ...string) error {
 	var init bool
 	for {
 		if init {
-			r, err := complete(c, maxTokens, os.Stdout, messages)
+			if err := rpm.Wait(context.Background()); err != nil {
+				return fmt.Errorf("request limiter failed: %v", err)
+			}
+			r, err := complete(c, config.MaxTokens, tpm, rpm, os.Stdout, messages)
 			if err != nil {
 				return fmt.Errorf("gpt can't complete: %v", err)
 			}
@@ -55,13 +68,17 @@ func Chat(key string, maxTokens int, promptFiles ...string) error {
 			case "stop":
 				addAssistant(r.Content)
 			case "length":
-				msg := fmt.Sprintf("\n<token limit of %d for response reached>\n", maxTokens)
+				msg := fmt.Sprintf("\n<token limit of %d for response reached>\n", config.MaxTokens)
 				fmt.Print(msg)
 				addAssistant(r.Content + msg)
 			default:
 				return fmt.Errorf("bad finish reason: %q", r.FinishReason)
 			}
 			fmt.Println()
+			// approximate tokens by content length:
+			if err := tpm.WaitN(context.Background(), len(r.Content)/4); err != nil {
+				fmt.Printf("<token limiter failed: %v>\n", err)
+			}
 		}
 		init = true
 		fmt.Print("> ")
@@ -81,6 +98,10 @@ func Chat(key string, maxTokens int, promptFiles ...string) error {
 	}
 }
 
+func RPMLimit(requestsPerMinute float64) rate.Limit {
+	return rate.Limit(requestsPerMinute / 60)
+}
+
 type client interface {
 	CreateChatCompletionStream(context.Context, openai.ChatCompletionRequest) (*openai.ChatCompletionStream, error)
 }
@@ -90,7 +111,7 @@ type completionResponse struct {
 	Content      string
 }
 
-func complete(c client, maxTokens int, w io.Writer, messages []openai.ChatCompletionMessage) (*completionResponse, error) {
+func complete(c client, maxTokens int, tpm, rpm *rate.Limiter, w io.Writer, messages []openai.ChatCompletionMessage) (*completionResponse, error) {
 	resp, err := c.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
 		Model:       openai.GPT40613,
 		Messages:    messages,
