@@ -25,9 +25,9 @@ type APIConfig struct {
 	RPM       int    // limit on tokens per minute (no good token info with streaming)
 }
 
-type File struct {
-	Name string
-	Body io.ReadCloser
+type File interface {
+	OptionalName() string
+	io.ReadCloser
 }
 
 // manages a streaming chat via stdin/stdout
@@ -56,12 +56,12 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 	}
 	for _, file := range promptFiles {
 		if err := func() error {
-			defer file.Body.Close()
+			defer file.Close()
 			w := new(bytes.Buffer)
-			if _, err := io.Copy(w, file.Body); err != nil {
+			if _, err := io.Copy(w, file); err != nil {
 				return err
 			}
-			if name := file.Name; name == "" {
+			if name := file.OptionalName(); name == "" {
 				addSystem(w.String())
 			} else {
 				addSystem(fmt.Sprintf("file %q contains:\n\n%s", name, w.String()))
