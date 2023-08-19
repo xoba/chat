@@ -26,7 +26,7 @@ type APIConfig struct {
 }
 
 type File interface {
-	OptionalName() string
+	OptionalMetadata() string
 	io.ReadCloser
 }
 
@@ -61,11 +61,10 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 			if _, err := io.Copy(w, file); err != nil {
 				return err
 			}
-			if name := file.OptionalName(); name == "" {
-				addSystem(w.String())
-			} else {
-				addSystem(fmt.Sprintf("file %q contains:\n\n%s", name, w.String()))
+			if meta := file.OptionalMetadata(); meta != "" {
+				addSystem(fmt.Sprintf("the following resource has metadata:\n\n%s", meta))
 			}
+			addSystem(w.String())
 			return nil
 		}(); err != nil {
 			return err
@@ -83,7 +82,7 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 			} else {
 				model = openai.GPT3Dot5Turbo
 			}
-			r, err := retry(7, time.Second, func() (*completionResponse, error) {
+			r, err := retry(7, 3*time.Second, func() (*completionResponse, error) {
 				return complete(c, model, config.MaxTokens, os.Stdout, messages...)
 			})
 			if err != nil {
