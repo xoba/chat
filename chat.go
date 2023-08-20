@@ -18,11 +18,14 @@ import (
 	"golang.org/x/time/rate"
 )
 
+type Callback func([]openai.ChatCompletionMessage)
+
 type APIConfig struct {
 	Key       string // openai key
 	MaxTokens int    // max tokens for each completion request
 	GPT4      bool   // use GPT-4 instead of GPT-3.5
 	RPM       int    // limit on tokens per minute (no good token info with streaming)
+	Callback         // callback for messages sent to openai (optional)
 }
 
 type File interface {
@@ -72,6 +75,9 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 	}
 	var init bool
 	for {
+		if callback := config.Callback; callback != nil {
+			callback(messages)
+		}
 		if init {
 			if err := rpm.Wait(context.Background()); err != nil {
 				return fmt.Errorf("request limiter failed: %v", err)
