@@ -22,9 +22,10 @@ type Callback func([]openai.ChatCompletionMessage)
 
 type APIConfig struct {
 	Key       string // openai key
-	MaxTokens int    // max tokens for each completion request
+	MaxTokens int    // max tokens for each completion request (zero means no limit)
 	GPT4      bool   // use GPT-4 instead of GPT-3.5
 	RPM       int    // limit on tokens per minute (no good token info with streaming)
+	Prompt    string // prompt to use for the first request (optional)
 	Callback         // callback for messages sent to openai (optional)
 }
 
@@ -74,6 +75,10 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 		}
 	}
 	var init bool
+	if len(config.Prompt) > 0 {
+		init = true
+		addSystem(config.Prompt)
+	}
 	for {
 		if callback := config.Callback; callback != nil {
 			callback(messages)
