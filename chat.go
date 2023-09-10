@@ -65,10 +65,11 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 			if _, err := io.Copy(w, file); err != nil {
 				return err
 			}
-			if meta := file.OptionalMetadata(); meta != "" {
-				addSystem(fmt.Sprintf("the following resource has metadata:\n\n%s", meta))
+			if meta := file.OptionalMetadata(); len(meta) > 0 {
+				addSystem(fmt.Sprintf("the following resource has metadata:\n\n%s\n\nhere's the contents of the resource:\n\n%s", meta, w))
+			} else {
+				addSystem(w.String())
 			}
-			addSystem(w.String())
 			return nil
 		}(); err != nil {
 			return err
