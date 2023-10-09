@@ -66,7 +66,13 @@ func (c claudeInterface) Streaming(messages []Message, stream io.Writer) (*Respo
 	r := s.Reader
 	defer r.Close()
 	content := new(bytes.Buffer)
+	var n int
+	const debug = false
 	for e := range r.Events() {
+		n++
+		if debug {
+			fmt.Printf("<event %d: %T>", n, e)
+		}
 		switch v := e.(type) {
 		case *types.ResponseStreamMemberChunk:
 			var br bedrockResponse
@@ -80,9 +86,12 @@ func (c claudeInterface) Streaming(messages []Message, stream io.Writer) (*Respo
 		default:
 			return nil, fmt.Errorf("union is nil or unknown type: %T %v", v, v)
 		}
-		if err := r.Err(); err != nil {
-			return nil, err
-		}
+	}
+	if err := r.Err(); err != nil {
+		return nil, err
+	}
+	if debug {
+		fmt.Printf("<%d events done>", n)
 	}
 	return &Response{
 		Content:      strings.TrimSpace(content.String()),
