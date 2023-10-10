@@ -33,7 +33,7 @@ func (c claudeInterface) Streaming(messages []Message, stream io.Writer) (*Respo
 	prompt := new(bytes.Buffer)
 	for _, m := range messages {
 		switch m.Role {
-		case RoleHuman:
+		case RoleUser:
 			fmt.Fprintf(prompt, "%s %s\n", humanPrompt, m.Content)
 		case RoleSystem:
 			fmt.Fprintf(prompt, "%s %s\n", humanPrompt, m.Content)

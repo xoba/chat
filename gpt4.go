@@ -31,8 +31,8 @@ func (i gpt4interface) Streaming(messages []Message, stream io.Writer) (*Respons
 		switch m.Role {
 		case RoleSystem:
 			role = "system"
-		case RoleHuman:
-			role = "human"
+		case RoleUser:
+			role = "user"
 		case RoleAssistant:
 			role = "assistant"
 		default:

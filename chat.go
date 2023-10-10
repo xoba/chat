@@ -32,7 +32,7 @@ type Role int
 const (
 	_ Role = iota
 	RoleSystem
-	RoleHuman
+	RoleUser
 	RoleAssistant
 )
 
@@ -71,7 +71,7 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 		add(RoleAssistant, s)
 	}
 	addUser := func(s string) {
-		add(RoleHuman, s)
+		add(RoleUser, s)
 	}
 	addSystem := func(s string) {
 		add(RoleSystem, s)
