@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"unicode"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
@@ -68,6 +69,7 @@ func (c claudeInterface) Streaming(messages []Message, stream io.Writer) (*Respo
 	content := new(bytes.Buffer)
 	var n int
 	const debug = false
+	first := true
 	for e := range r.Events() {
 		n++
 		if debug {
@@ -78,6 +80,11 @@ func (c claudeInterface) Streaming(messages []Message, stream io.Writer) (*Respo
 			var br bedrockResponse
 			if err := json.Unmarshal(v.Value.Bytes, &br); err != nil {
 				return nil, err
+			}
+			if first {
+				// for some unknown reason, claude-v2 always returns a leading space
+				br.Completion = strings.TrimLeftFunc(br.Completion, unicode.IsSpace)
+				first = true
 			}
 			fmt.Fprint(stream, br.Completion)
 			content.WriteString(br.Completion)
