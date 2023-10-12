@@ -84,7 +84,7 @@ func (c claudeInterface) Streaming(messages []Message, stream io.Writer) (*Respo
 			if first {
 				// for some unknown reason, claude-v2 always returns a leading space
 				br.Completion = strings.TrimLeftFunc(br.Completion, unicode.IsSpace)
-				first = true
+				first = false
 			}
 			fmt.Fprint(stream, br.Completion)
 			content.WriteString(br.Completion)
