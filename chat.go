@@ -12,7 +12,8 @@ import (
 )
 
 type Interface interface {
-	// sends messages to the chat system and streams response
+	MaxTokens() int
+	TokenEstimate(messages []Message) (int, error)
 	Streaming(messages []Message, stream io.Writer) (*Response, error)
 }
 

@@ -26,11 +26,20 @@ func (i claudeInterface) String() string {
 	return "anthopic.claude-v2"
 }
 
-func (c claudeInterface) Streaming(messages []Message, stream io.Writer) (*Response, error) {
-	const (
-		humanPrompt     = "\n\nHuman:"
-		assistantPrompt = "\n\nAssistant:"
-	)
+func (claudeInterface) MaxTokens() int {
+	return 100 * 1024
+}
+
+// rough estimate at 3/4 token per byte
+func (claudeInterface) TokenEstimate(messages []Message) (int, error) {
+	prompt, err := claudePrompt(messages)
+	if err != nil {
+		return 0, err
+	}
+	return int(3.0 / 4.0 * float64(len(prompt))), nil
+}
+
+func claudePrompt(messages []Message) (string, error) {
 	prompt := new(bytes.Buffer)
 	for _, m := range messages {
 		switch m.Role {
@@ -41,11 +50,25 @@ func (c claudeInterface) Streaming(messages []Message, stream io.Writer) (*Respo
 		case RoleAssistant:
 			fmt.Fprintf(prompt, "%s %s\n", assistantPrompt, m.Content)
 		default:
+			return "", fmt.Errorf("unknown role: %v", m.Role)
 		}
 	}
 	fmt.Fprintf(prompt, "%s\n", assistantPrompt)
+	return prompt.String(), nil
+}
+
+const (
+	humanPrompt     = "\n\nHuman:"
+	assistantPrompt = "\n\nAssistant:"
+)
+
+func (c claudeInterface) Streaming(messages []Message, stream io.Writer) (*Response, error) {
+	prompt, err := claudePrompt(messages)
+	if err != nil {
+		return nil, err
+	}
 	bedrockReq := bedrockRequest{
-		Prompt:           prompt.String(),
+		Prompt:           prompt,
 		Max:              1000,
 		Temperature:      1,
 		TopK:             250,
