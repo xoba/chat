@@ -23,36 +23,40 @@ func main() {
 }
 
 func Run() error {
-	buf, err := os.ReadFile("openai_key.txt")
+	models, err := LoadModels()
 	if err != nil {
 		return err
 	}
-	llm1, err := chat.GPT4(openai.NewClient(strings.TrimSpace(string(buf))))
-	if err != nil {
-		return err
-	}
-	br, err := NewBedrockRuntime()
-	if err != nil {
-		return err
-	}
-	llm2, err := chat.Claude2(br)
-	if err != nil {
-		return err
-	}
-	multi, err := chat.NewMultiInterface(llm1, llm2)
-	if err != nil {
-		return err
+	config := chat.APIConfig{
+		LLMInterface: models,
+		Prompt:       "please describe the included resources, and provide some notable quotes.",
+		Print:        false,
 	}
 	exampleFile, err := NewEmbeddedFile("example.txt")
 	if err != nil {
 		return err
 	}
-	config := chat.APIConfig{
-		LLMInterface: multi,
-		Prompt:       "please describe the included resources, and provide some notable quotes.",
-		Print:        false,
-	}
 	return chat.Streaming(config, exampleFile)
+}
+
+func LoadModels() (chat.LLMInterface, error) {
+	buf, err := os.ReadFile("openai_key.txt")
+	if err != nil {
+		return nil, err
+	}
+	llm1, err := chat.GPT4(openai.NewClient(strings.TrimSpace(string(buf))))
+	if err != nil {
+		return nil, err
+	}
+	br, err := NewBedrockRuntime()
+	if err != nil {
+		return nil, err
+	}
+	llm2, err := chat.Claude2(br)
+	if err != nil {
+		return nil, err
+	}
+	return chat.NewMultiInterface(llm1, llm2)
 }
 
 func NewBedrockRuntime() (*bedrockruntime.Client, error) {
