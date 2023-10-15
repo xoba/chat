@@ -67,4 +67,4 @@ to abandon his family to follow Gudo as a form of escapism, avoiding
 his responsibilities rather than facing them. The story doesn't
 provide enough details to determine which interpretation is correct.
 
-**>**
+**> ...**
