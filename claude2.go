@@ -14,6 +14,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 )
 
+const DefaultAnthopicModel = "anthropic.claude-v2"
+
 // assumes that 1000 tokens are approximately 750 words.
 func Claude2(c *bedrockruntime.Client) (LLMInterface, error) {
 	return claudeInterface{c: c}, nil
@@ -24,7 +26,7 @@ type claudeInterface struct {
 }
 
 func (i claudeInterface) String() string {
-	return "anthopic.claude-v2"
+	return DefaultAnthopicModel
 }
 
 func (claudeInterface) MaxTokens() int {
@@ -85,7 +87,7 @@ func (c claudeInterface) Streaming(messages []Message, stream io.Writer) (*Respo
 	body, _ := json.MarshalIndent(bedrockReq, "", "  ")
 	resp, err := c.c.InvokeModelWithResponseStream(context.Background(), &bedrockruntime.InvokeModelWithResponseStreamInput{
 		Body:        body,
-		ModelId:     aws.String("anthropic.claude-v2"),
+		ModelId:     aws.String(DefaultAnthopicModel),
 		Accept:      aws.String("*/*"),
 		ContentType: aws.String("application/json"),
 	})

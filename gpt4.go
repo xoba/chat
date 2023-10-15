@@ -15,6 +15,8 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
+const DefaultOpenAIModel = openai.GPT40613
+
 func GPT4(c *openai.Client) (LLMInterface, error) {
 	return gpt4interface{c: c}, nil
 }
@@ -30,8 +32,6 @@ func (i gpt4interface) String() string {
 func (gpt4interface) MaxTokens() int {
 	return 8 * 1024
 }
-
-const DefaultOpenAIModel = openai.GPT40613
 
 // seems to be a precise estimate
 func (i gpt4interface) TokenEstimate(messages []Message) (int, error) {
