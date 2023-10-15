@@ -1,8 +1,10 @@
-## simple generic chat harness for openai's and anthropic's LLM's
+## simple generic LLM chat harness
+
+has built-in support for [openai's](gpt4.go) and anthropic's LLM's.
 
 have a look at [example/main.go](example/main.go) for an example of how to use this library.
 
-running it looks like this, `>` on a line indicates where it waits
+running it looks like this, "`>`" as a line prefix indicates where it waits
 for you to enter something to continue the conversation:
 
 chat% **go run example/main.go**
