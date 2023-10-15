@@ -56,7 +56,7 @@ func LoadModels() (chat.LLMInterface, error) {
 	if err != nil {
 		return nil, err
 	}
-	return chat.NewMultiInterface(llm1, llm2)
+	return chat.NewMultiLLMInterface(llm1, llm2)
 }
 
 func NewBedrockRuntime() (*bedrockruntime.Client, error) {

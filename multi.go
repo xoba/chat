@@ -6,7 +6,7 @@ import (
 )
 
 // uses the first smaller capacity one, until tokens exceed its limit, then uses the second one
-func NewMultiInterface(firstSmaller, secondLarger LLMInterface) (LLMInterface, error) {
+func NewMultiLLMInterface(firstSmaller, secondLarger LLMInterface) (LLMInterface, error) {
 	if firstSmaller.MaxTokens() >= secondLarger.MaxTokens() {
 		return nil, fmt.Errorf("first interface should have less capacity than second")
 	}
