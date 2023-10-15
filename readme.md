@@ -1,6 +1,7 @@
 ## simple generic LLM chat harness
 
 has built-in support for [openai's](gpt4.go) and [anthropic's](claude2.go) LLM's.
+anthropic access is via `aws/bedrockruntime`.
 
 have a look at [example/main.go](example/main.go) for an example of how to use this library.
 
