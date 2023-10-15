@@ -15,7 +15,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-func GPT4(c *openai.Client) (Interface, error) {
+func GPT4(c *openai.Client) (LLMInterface, error) {
 	return gpt4interface{c: c}, nil
 }
 

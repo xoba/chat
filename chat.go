@@ -11,9 +11,12 @@ import (
 	"time"
 )
 
-type Interface interface {
+type LLMInterface interface {
+	// the context window capacity of the LLM
 	MaxTokens() int
+	// estimates how many tokens are used by the messages
 	TokenEstimate(messages []Message) (int, error)
+	// streams the response of the LLM to the messages
 	Streaming(messages []Message, stream io.Writer) (*Response, error)
 }
 
@@ -48,7 +51,7 @@ const (
 )
 
 type APIConfig struct {
-	Interface
+	LLMInterface
 	Prompt string // prompt to use for the first request (optional)
 	Print  bool   // whether to print the initial messages to stdout
 }

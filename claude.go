@@ -14,7 +14,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 )
 
-func Claude2(c *bedrockruntime.Client) (Interface, error) {
+// assumes that 1000 tokens are approximately 750 words.
+func Claude2(c *bedrockruntime.Client) (LLMInterface, error) {
 	return claudeInterface{c: c}, nil
 }
 
@@ -30,13 +31,18 @@ func (claudeInterface) MaxTokens() int {
 	return 100 * 1024
 }
 
+func countWords(s string) int {
+	words := strings.Fields(s)
+	return len(words)
+}
+
 // rough estimate at 3/4 token per byte
 func (claudeInterface) TokenEstimate(messages []Message) (int, error) {
 	prompt, err := claudePrompt(messages)
 	if err != nil {
 		return 0, err
 	}
-	return int(3.0 / 4.0 * float64(len(prompt))), nil
+	return int(4.0 / 3.0 * float64(countWords(prompt))), nil
 }
 
 func claudePrompt(messages []Message) (string, error) {
