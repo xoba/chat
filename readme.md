@@ -5,8 +5,8 @@ have a look at [example/main.go](example/main.go) for an example of how to use t
 running it looks like this, `>` on a line indicates where it waits
 for you to enter something to continue the conversation:
 
-```
 chat% **go run example/main.go**
+
 The included resource in this document is a Zen story titled "Finding
 a Diamond on a Muddy Road" sourced from
 https://ashidakim.com/zenkoans/2findingadiamond.html. The story is
@@ -36,6 +36,7 @@ famous master who was the successor of Gudo. His name was Mu-nan,
 the man who never turned back."
 
 **> what's the moral of the story, or the conclusion?**
+
 The moral of the story is about the impermanence of life and the
 importance of using one's time wisely. It underlines the fact that
 harmful habits not only affect the person indulging in them but
@@ -50,6 +51,7 @@ in Zen teachings, showing that profound change and redemption are
 possible.
 
 **> what about leaving his wife behind?**
+
 The story doesn't explicitly address what happens to the man's wife
 after he decides to follow Gudo. However, it's possible to interpret
 this in different ways.  One interpretation could be that by choosing
@@ -63,5 +65,3 @@ his responsibilities rather than facing them. The story doesn't
 provide enough details to determine which interpretation is correct.
 
 **>**
-
-```
