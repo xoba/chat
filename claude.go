@@ -36,7 +36,7 @@ func countWords(s string) int {
 	return len(words)
 }
 
-// rough estimate at 3/4 token per byte
+// rough estimate at 4/3 tokens per word
 func (claudeInterface) TokenEstimate(messages []Message) (int, error) {
 	prompt, err := claudePrompt(messages)
 	if err != nil {
