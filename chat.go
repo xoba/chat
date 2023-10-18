@@ -61,8 +61,8 @@ type File interface {
 	io.ReadCloser
 }
 
-// manages a streaming chat via stdin/stdout
-func Streaming(config APIConfig, promptFiles ...File) error {
+// manages a streaming chat via stdin/stdout. after the chat, returns messages thus far and error, if any.
+func Streaming(config APIConfig, promptFiles ...File) ([]Message, error) {
 	reader := bufio.NewReader(os.Stdin)
 	var messages []Message
 	add := func(role Role, text string) {
@@ -94,7 +94,7 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 			}
 			return nil
 		}(); err != nil {
-			return err
+			return messages, err
 		}
 	}
 	var init bool
@@ -113,7 +113,7 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 				return config.Streaming(messages, os.Stdout)
 			})
 			if err != nil {
-				return fmt.Errorf("gpt can't complete: %v", err)
+				return messages, fmt.Errorf("gpt can't complete: %v", err)
 			}
 			switch r.FinishReason {
 			case FinishReasonStop:
@@ -123,7 +123,7 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 				fmt.Print(msg)
 				addAssistant(r.Content + msg)
 			default:
-				return fmt.Errorf("bad finish reason: %q", r.FinishReason)
+				return messages, fmt.Errorf("bad finish reason: %q", r.FinishReason)
 			}
 			fmt.Println()
 		}
@@ -132,9 +132,9 @@ func Streaming(config APIConfig, promptFiles ...File) error {
 		text, err := reader.ReadString('\n')
 		if err == io.EOF {
 			fmt.Println()
-			return nil
+			return messages, nil
 		} else if err != nil {
-			return fmt.Errorf("can't read from stdin: %v", err)
+			return messages, fmt.Errorf("can't read from stdin: %v", err)
 		}
 		text = strings.TrimSpace(text)
 		if len(text) == 0 {

@@ -36,7 +36,10 @@ func Run() error {
 	if err != nil {
 		return err
 	}
-	return chat.Streaming(config, exampleFile)
+	if _, err := chat.Streaming(config, exampleFile); err != nil {
+		return err
+	}
+	return nil
 }
 
 func LoadModels() (chat.LLMInterface, error) {
