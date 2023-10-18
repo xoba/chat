@@ -109,11 +109,11 @@ func Streaming(config APIConfig, promptFiles ...File) ([]Message, error) {
 	}
 	for {
 		if init {
-			r, err := retry(7, 3*time.Second, func() (*Response, error) {
+			r, err := retry(10, 3*time.Second, func() (*Response, error) {
 				return config.Streaming(messages, os.Stdout)
 			})
 			if err != nil {
-				return messages, fmt.Errorf("gpt can't complete: %v", err)
+				return messages, err
 			}
 			switch r.FinishReason {
 			case FinishReasonStop:
