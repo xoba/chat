@@ -15,7 +15,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-const DefaultOpenAIModel = openai.GPT40613
+const DefaultOpenAIModel = openai.GPT4
 
 func GPT4(c *openai.Client) (LLMInterface, error) {
 	return gpt4interface{c: c}, nil
