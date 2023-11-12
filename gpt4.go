@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/pkoukk/tiktoken-go"
-	"github.com/sashabaranov/go-openai"
+	"github.com/xoba/openai"
 )
 
 //go:generate stringer -type=GPT4Mode
@@ -43,23 +43,19 @@ func (gpt4interface) MaxTokens() int {
 
 // seems to be a precise estimate
 func (i gpt4interface) TokenEstimate(messages []Message) (int, error) {
-	list, err := openaiMessages(messages)
-	if err != nil {
-		return 0, err
-	}
-	n, err := numTokensFromMessages(list, openai.GPT4)
+	n, err := numTokensFromMessages(messages, "gpt-4")
 	if err != nil {
 		return 0, err
 	}
 	return n, nil
 }
 
-func numTokensFromMessages(messages []openai.ChatCompletionMessage, model string) (int, error) {
+func numTokensFromMessages(messages []Message, model string) (int, error) {
 	tkm, err := tiktoken.EncodingForModel(model)
 	if err != nil {
 		return 0, fmt.Errorf("encoding for model: %v", err)
 	}
-	var tokensPerMessage, tokensPerName int
+	var tokensPerMessage int
 	switch model {
 	case "gpt-3.5-turbo-0613",
 		"gpt-3.5-turbo-16k-0613",
@@ -68,10 +64,8 @@ func numTokensFromMessages(messages []openai.ChatCompletionMessage, model string
 		"gpt-4-0613",
 		"gpt-4-32k-0613":
 		tokensPerMessage = 3
-		tokensPerName = 1
 	case "gpt-3.5-turbo-0301":
 		tokensPerMessage = 4 // every message follows <|start|>{role/name}\n{content}<|end|>\n
-		tokensPerName = -1   // if there's a name, the role is omitted
 	default:
 		if strings.Contains(model, "gpt-3.5-turbo") {
 			log.Println("warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
@@ -87,21 +81,8 @@ func numTokensFromMessages(messages []openai.ChatCompletionMessage, model string
 	for _, message := range messages {
 		numTokens += tokensPerMessage
 		numTokens += len(tkm.Encode(message.Content, nil, nil))
-		numTokens += len(tkm.Encode(message.Role, nil, nil))
-		numTokens += len(tkm.Encode(message.Name, nil, nil))
-		if message.Name != "" {
-			numTokens += tokensPerName
-		}
-	}
-	numTokens += 3 // every reply is primed with <|start|>assistant<|message|>
-	return numTokens, nil
-}
-
-func openaiMessages(messages []Message) ([]openai.ChatCompletionMessage, error) {
-	var list []openai.ChatCompletionMessage
-	for _, m := range messages {
 		var role string
-		switch m.Role {
+		switch message.Role {
 		case RoleSystem:
 			role = "system"
 		case RoleUser:
@@ -109,14 +90,13 @@ func openaiMessages(messages []Message) ([]openai.ChatCompletionMessage, error) 
 		case RoleAssistant:
 			role = "assistant"
 		default:
-			return nil, fmt.Errorf("unknown role: %v", m.Role)
+			return 0, fmt.Errorf("unknown role: %v", message.Role)
 		}
-		list = append(list, openai.ChatCompletionMessage{
-			Role:    role,
-			Content: m.Content,
-		})
+
+		numTokens += len(tkm.Encode(role, nil, nil))
 	}
-	return list, nil
+	numTokens += 3 // every reply is primed with <|start|>assistant<|message|>
+	return numTokens, nil
 }
 
 func (i gpt4interface) Streaming(messages []Message, stream io.Writer) (*Response, error) {
@@ -199,10 +179,6 @@ func complete(c client, model string, maxTokens int, stream io.Writer, messages 
 		FinishReason: finishReason,
 		Content:      q.String(),
 	}, nil
-}
-
-type client interface {
-	CreateChatCompletionStream(context.Context, openai.ChatCompletionRequest) (*openai.ChatCompletionStream, error)
 }
 
 type completionResponse struct {

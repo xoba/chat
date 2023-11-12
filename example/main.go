@@ -9,8 +9,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
-	"github.com/sashabaranov/go-openai"
 	"github.com/xoba/chat"
+	"github.com/xoba/openai"
 )
 
 //go:embed *.txt
@@ -47,7 +47,11 @@ func LoadModels() (chat.LLMInterface, error) {
 	if err != nil {
 		return nil, err
 	}
-	llm1, err := chat.GPT4(chat.GPT4ModeDefault, openai.NewClient(strings.TrimSpace(string(buf))))
+	c, err := openai.NewClient(strings.TrimSpace(string(buf)))
+	if err != nil {
+		return nil, err
+	}
+	llm1, err := chat.GPT4(chat.GPT4ModeDefault, c)
 	if err != nil {
 		return nil, err
 	}
