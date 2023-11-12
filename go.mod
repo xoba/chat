@@ -2,14 +2,12 @@ module github.com/xoba/chat
 
 go 1.21.4
 
-replace github.com/xoba/openai => ../openai
-
 require (
 	github.com/aws/aws-sdk-go-v2 v1.22.1
 	github.com/aws/aws-sdk-go-v2/config v1.22.0
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.3.0
 	github.com/pkoukk/tiktoken-go v0.1.6
-	github.com/xoba/openai v0.0.1
+	github.com/xoba/openai v0.0.2
 )
 
 require (

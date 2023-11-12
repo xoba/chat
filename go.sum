@@ -52,5 +52,7 @@ github.com/vincent-petithory/dataurl v1.0.0 h1:cXw+kPto8NLuJtlMsI152irrVw9fRDX8A
 github.com/vincent-petithory/dataurl v1.0.0/go.mod h1:FHafX5vmDzyP+1CQATJn7WFKc9CvnvxyvZy6I1MrG/U=
 github.com/xoba/open-golang v1.0.0 h1:hleVhJ9dbEeocMMR9+Qfpy1t8aWQCzhVZAaClypQBss=
 github.com/xoba/open-golang v1.0.0/go.mod h1:N3uDLpH9sLfglNW4iM+0d+Dbd8VSzN5CkiuXydKj1xc=
+github.com/xoba/openai v0.0.2 h1:70YxeHJfazONUr1Dz0SVjMVmfazvNHBBjFiPPyxDUmA=
+github.com/xoba/openai v0.0.2/go.mod h1:Z8HmCZgMyXDYoPne195ykso89hK8Uxl395gZDUpEZao=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=

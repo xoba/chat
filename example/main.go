@@ -23,7 +23,7 @@ func main() {
 }
 
 func Run() error {
-	models, err := LoadModels()
+	models, err := LoadModel()
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func Run() error {
 	return nil
 }
 
-func LoadModels() (chat.LLMInterface, error) {
+func LoadModel() (chat.LLMInterface, error) {
 	buf, err := os.ReadFile("openai_key.txt")
 	if err != nil {
 		return nil, err

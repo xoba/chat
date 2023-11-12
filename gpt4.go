@@ -1,14 +1,9 @@
 package chat
 
 import (
-	"bytes"
-	"context"
-	"errors"
 	"fmt"
 	"io"
 	"log"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/pkoukk/tiktoken-go"
@@ -25,6 +20,12 @@ const (
 )
 
 func GPT4(m GPT4Mode, c *openai.Client) (LLMInterface, error) {
+	switch m {
+	case GPT4ModeDefault:
+	case GPT4ModeTurbo:
+	default:
+		return nil, fmt.Errorf("illegal mode: %v", m)
+	}
 	return gpt4interface{c: c, m: m}, nil
 }
 
@@ -37,8 +38,15 @@ func (i gpt4interface) String() string {
 	return "openai.gpt4"
 }
 
-func (gpt4interface) MaxTokens() int {
-	return 128 * 1024
+func (i gpt4interface) MaxTokens() int {
+	switch i.m {
+	case GPT4ModeDefault:
+		return 8 * 1024
+	case GPT4ModeTurbo:
+		return 128 * 1024
+	default:
+		panic("illegal")
+	}
 }
 
 // seems to be a precise estimate
@@ -100,88 +108,44 @@ func numTokensFromMessages(messages []Message, model string) (int, error) {
 }
 
 func (i gpt4interface) Streaming(messages []Message, stream io.Writer) (*Response, error) {
-	list, err := openaiMessages(messages)
-	if err != nil {
-		return nil, err
+	var m2 []openai.Message
+	for _, m := range messages {
+		var r string
+		switch m.Role {
+		case RoleSystem:
+			r = "system"
+		case RoleUser:
+			r = "user"
+		case RoleAssistant:
+			r = "assistant"
+		}
+		m2 = append(m2, openai.Message{
+			Role:    r,
+			Content: m.Content,
+		})
 	}
-	var m string
+	var model string
 	switch i.m {
 	case GPT4ModeDefault:
-		m = "gpt-4"
+		model = "gpt-4-0613"
 	case GPT4ModeTurbo:
-		m = "gpt-4-1106-preview"
+		model = "gpt-4-1106-preview"
 	}
-	r, err := complete(i.c, m, 0, stream, list...)
+	r, err := i.c.Streaming(model, m2, stream)
 	if err != nil {
 		return nil, err
 	}
-	out := Response{
-		Content: r.Content,
-	}
+	var finishReason FinishReason
 	switch r.FinishReason {
 	case "stop":
-		out.FinishReason = FinishReasonStop
+		finishReason = FinishReasonStop
 	case "length":
-		out.FinishReason = FinishReasonLength
+		finishReason = FinishReasonLength
 	default:
-		out.FinishReason = FinishReasonUnknown
+		finishReason = FinishReasonUnknown
 	}
-	return &out, nil
-}
-
-func complete(c client, model string, maxTokens int, stream io.Writer, messages ...openai.ChatCompletionMessage) (*completionResponse, error) {
-	resp, err := c.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
-		Model:       model,
-		Messages:    messages,
-		MaxTokens:   maxTokens,
-		Temperature: 0.7,
-		TopP:        1,
-	})
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Close()
-	q := new(bytes.Buffer)
-	out := io.MultiWriter(stream, q)
-	var finishReason string
-	for {
-		t, err := resp.Recv()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			var apiError *openai.APIError
-			if errors.As(err, &apiError) {
-				p := regexp.MustCompile(`(\d+) tokens`)
-				if p.MatchString(apiError.Message) {
-					m := p.FindStringSubmatch(apiError.Message)
-					tokens, convError := strconv.ParseUint(m[1], 10, 64)
-					if convError != nil {
-						return nil, convError
-					}
-					fmt.Printf("total tokens = %d; error = %v\n", tokens, err)
-					return nil, err
-				} else {
-					return nil, err
-				}
-			}
-			return nil, err
-		}
-		choices := t.Choices
-		if len(choices) == 0 {
-			return nil, fmt.Errorf("no choices")
-		}
-		firstChoice := choices[0]
-		finishReason = string(firstChoice.FinishReason)
-		fmt.Fprint(out, firstChoice.Delta.Content)
-	}
-	fmt.Fprintln(out)
-	return &completionResponse{
+	return &Response{
+		Content:      r.Content,
 		FinishReason: finishReason,
-		Content:      q.String(),
 	}, nil
-}
-
-type completionResponse struct {
-	FinishReason string
-	Content      string
 }
