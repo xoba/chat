@@ -15,14 +15,22 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-const DefaultOpenAIModel = openai.GPT4
+//go:generate stringer -type=GPT4Mode
+type GPT4Mode int
 
-func GPT4(c *openai.Client) (LLMInterface, error) {
-	return gpt4interface{c: c}, nil
+const (
+	_ GPT4Mode = iota
+	GPT4ModeDefault
+	GPT4ModeTurbo
+)
+
+func GPT4(m GPT4Mode, c *openai.Client) (LLMInterface, error) {
+	return gpt4interface{c: c, m: m}, nil
 }
 
 type gpt4interface struct {
 	c *openai.Client
+	m GPT4Mode
 }
 
 func (i gpt4interface) String() string {
@@ -30,7 +38,7 @@ func (i gpt4interface) String() string {
 }
 
 func (gpt4interface) MaxTokens() int {
-	return 8 * 1024
+	return 128 * 1024
 }
 
 // seems to be a precise estimate
@@ -39,7 +47,7 @@ func (i gpt4interface) TokenEstimate(messages []Message) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	n, err := numTokensFromMessages(list, DefaultOpenAIModel)
+	n, err := numTokensFromMessages(list, openai.GPT4)
 	if err != nil {
 		return 0, err
 	}
@@ -116,7 +124,14 @@ func (i gpt4interface) Streaming(messages []Message, stream io.Writer) (*Respons
 	if err != nil {
 		return nil, err
 	}
-	r, err := complete(i.c, DefaultOpenAIModel, 0, stream, list...)
+	var m string
+	switch i.m {
+	case GPT4ModeDefault:
+		m = "gpt-4"
+	case GPT4ModeTurbo:
+		m = "gpt-4-1106-preview"
+	}
+	r, err := complete(i.c, m, 0, stream, list...)
 	if err != nil {
 		return nil, err
 	}

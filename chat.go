@@ -123,7 +123,7 @@ func Streaming(config APIConfig, promptFiles ...File) ([]Message, error) {
 				fmt.Print(msg)
 				addAssistant(r.Content + msg)
 			default:
-				return messages, fmt.Errorf("bad finish reason: %q", r.FinishReason)
+				return messages, fmt.Errorf("unhandled finish reason: %q", r.FinishReason)
 			}
 			fmt.Println()
 		}

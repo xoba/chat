@@ -47,7 +47,7 @@ func LoadModels() (chat.LLMInterface, error) {
 	if err != nil {
 		return nil, err
 	}
-	llm1, err := chat.GPT4(openai.NewClient(strings.TrimSpace(string(buf))))
+	llm1, err := chat.GPT4(chat.GPT4ModeDefault, openai.NewClient(strings.TrimSpace(string(buf))))
 	if err != nil {
 		return nil, err
 	}
