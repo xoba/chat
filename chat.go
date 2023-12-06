@@ -52,8 +52,9 @@ const (
 
 type APIConfig struct {
 	LLMInterface
-	Prompt string // prompt to use for the first request (optional)
-	Print  bool   // whether to print the initial messages to stdout
+	Prompt   string // prompt to use for the first request (optional)
+	Print    bool   // whether to print the initial messages to stdout
+	OneRound bool   // whether to just run for one round, no conversation
 }
 
 type File interface {
@@ -124,6 +125,9 @@ func Streaming(config APIConfig, promptFiles ...File) ([]Message, error) {
 				addAssistant(r.Content + msg)
 			default:
 				return messages, fmt.Errorf("unhandled finish reason: %q", r.FinishReason)
+			}
+			if config.OneRound {
+				return messages, nil
 			}
 			fmt.Println()
 		}
