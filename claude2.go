@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 )
 
-const DefaultAnthropicModel = "anthropic.claude-v2"
+const DefaultAnthropicModel = "anthropic.claude-v2:1"
 
 // assumes that 1000 tokens are approximately 750 words.
 func Claude2(c *bedrockruntime.Client) (LLMInterface, error) {
