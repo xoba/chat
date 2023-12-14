@@ -82,7 +82,7 @@ func numTokensFromMessages(messages []Message, model string) (int, error) {
 			//log.Println("warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613.")
 			return numTokensFromMessages(messages, "gpt-4-0613")
 		} else {
-			return 0, fmt.Errorf("num_tokens_from_messages() is not implemented for model %s. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.", model)
+			return 0, fmt.Errorf("num_tokens_from_messages() is not implemented for model %s. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens", model)
 		}
 	}
 	var numTokens int

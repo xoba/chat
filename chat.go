@@ -55,6 +55,7 @@ type APIConfig struct {
 	Prompt   string // prompt to use for the first request (optional)
 	Print    bool   // whether to print the initial messages to stdout
 	OneRound bool   // whether to just run for one round, no conversation
+	JSONMode bool   // whether to have model respond in json
 }
 
 type File interface {
@@ -120,7 +121,7 @@ func Streaming(config APIConfig, promptFiles ...File) ([]Message, error) {
 			case FinishReasonStop:
 				addAssistant(r.Content)
 			case FinishReasonLength:
-				msg := fmt.Sprintf("\n<token limit for response reached>\n")
+				msg := "\n<token limit for response reached>\n"
 				fmt.Print(msg)
 				addAssistant(r.Content + msg)
 			default:
