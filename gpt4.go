@@ -70,6 +70,8 @@ func numTokensFromMessages(messages []Message, model string) (int, error) {
 		"gpt-4-0314",
 		"gpt-4-32k-0314",
 		"gpt-4-0613",
+		"gpt-4-0125-preview",
+		"gpt-4-turbo-preview",
 		"gpt-4-32k-0613":
 		tokensPerMessage = 3
 	case "gpt-3.5-turbo-0301":
@@ -129,7 +131,7 @@ func (i gpt4interface) Streaming(messages []Message, stream io.Writer) (*Respons
 	case GPT4ModeDefault:
 		model = "gpt-4-0613"
 	case GPT4ModeTurbo:
-		model = "gpt-4-1106-preview"
+		model = "gpt-4-turbo-preview"
 	}
 	r, err := i.c.Streaming(model, m2, stream)
 	if err != nil {
