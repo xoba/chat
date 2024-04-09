@@ -8,13 +8,12 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[GPT4ModeDefault-1]
-	_ = x[GPT4ModeTurbo-2]
+	_ = x[GPT4ModeTurbo-1]
 }
 
-const _GPT4Mode_name = "GPT4ModeDefaultGPT4ModeTurbo"
+const _GPT4Mode_name = "GPT4ModeTurbo"
 
-var _GPT4Mode_index = [...]uint8{0, 15, 28}
+var _GPT4Mode_index = [...]uint8{0, 13}
 
 func (i GPT4Mode) String() string {
 	i -= 1

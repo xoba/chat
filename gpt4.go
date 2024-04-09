@@ -15,13 +15,11 @@ type GPT4Mode int
 
 const (
 	_ GPT4Mode = iota
-	GPT4ModeDefault
 	GPT4ModeTurbo
 )
 
 func GPT4(m GPT4Mode, c *openai.Client) (LLMInterface, error) {
 	switch m {
-	case GPT4ModeDefault:
 	case GPT4ModeTurbo:
 	default:
 		return nil, fmt.Errorf("illegal mode: %v", m)
@@ -40,8 +38,6 @@ func (i gpt4interface) String() string {
 
 func (i gpt4interface) MaxTokens() int {
 	switch i.m {
-	case GPT4ModeDefault:
-		return 8 * 1024
 	case GPT4ModeTurbo:
 		return 128 * 1024
 	default:
@@ -72,6 +68,7 @@ func numTokensFromMessages(messages []Message, model string) (int, error) {
 		"gpt-4-0613",
 		"gpt-4-0125-preview",
 		"gpt-4-turbo-preview",
+		"gpt-4-turbo",
 		"gpt-4-32k-0613":
 		tokensPerMessage = 3
 	case "gpt-3.5-turbo-0301":
@@ -128,10 +125,8 @@ func (i gpt4interface) Streaming(messages []Message, stream io.Writer) (*Respons
 	}
 	var model string
 	switch i.m {
-	case GPT4ModeDefault:
-		model = "gpt-4-0613"
 	case GPT4ModeTurbo:
-		model = "gpt-4-turbo-preview"
+		model = "gpt-4-turbo"
 	}
 	r, err := i.c.Streaming(model, m2, stream)
 	if err != nil {

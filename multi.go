@@ -8,9 +8,6 @@ import (
 // uses the first smaller capacity one, until tokens exceed its limit, then uses the second one;
 // thus, can seemlessly switch between a lower capacity and a higher capacity model as chat grows over time.
 func NewMultiLLMInterface(firstSmaller, secondLarger LLMInterface) (LLMInterface, error) {
-	if firstSmaller.MaxTokens() >= secondLarger.MaxTokens() {
-		return nil, fmt.Errorf("first interface should have less capacity than second")
-	}
 	return multiInterface{firstSmaller, secondLarger}, nil
 }
 

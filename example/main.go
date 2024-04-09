@@ -51,7 +51,7 @@ func LoadModel() (chat.LLMInterface, error) {
 	if err != nil {
 		return nil, err
 	}
-	llm1, err := chat.GPT4(chat.GPT4ModeDefault, c)
+	llm1, err := chat.GPT4(chat.GPT4ModeTurbo, c)
 	if err != nil {
 		return nil, err
 	}
